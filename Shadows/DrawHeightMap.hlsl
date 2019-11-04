@@ -112,5 +112,5 @@ void PSMain(const PSInput input, out PSOutput output)
 	// Sample render target to see if this pixel is in shadow
 	float4 shadowSampleColor = g_shadowTexture.Sample(g_shadowSampler, lightingPosition.xy);
 	// If it is then alpha blend between final colour and shadow colour
-	output.colour = (input.colour - shadowSampleColor.b);
+	output.colour = (max(input.colour - shadowSampleColor.b,0));
 }
