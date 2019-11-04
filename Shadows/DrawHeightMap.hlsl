@@ -77,7 +77,7 @@ struct PSInput
 {
 	float4 pos:SV_Position;
 	float4 colour:COLOUR0;
-// Something missing here...
+	float4 originalPos:POSITION;
 
 };
 
@@ -91,7 +91,7 @@ void VSMain(const VSInput input, out PSInput output)
 {
 	output.pos = mul(input.pos, g_WVP);
 
-	// You also need to pass through the untransformed world position to the PS
+	output.originalPos = input.pos;
 
 	float3 worldNormal = mul(input.normal, g_InvXposeW);
 
@@ -101,15 +101,16 @@ void VSMain(const VSInput input, out PSInput output)
 // This gets called for every pixel which needs to be drawn
 void PSMain(const PSInput input, out PSOutput output)
 {
-	output.colour = input.colour;
+	//output.colour = input.colour;
 
 	// Transform the pixel into light space
-
+	float4 lightingPosition = mul(input.originalPos, g_shadowMatrix);
 	// Perform perspective correction
-
+	lightingPosition = lightingPosition / lightingPosition.z;
 	// Scale and offset uvs into 0-1 range.
-
+	lightingPosition = (lightingPosition + 1) / 2;
 	// Sample render target to see if this pixel is in shadow
-
+	float4 shadowSampleColor = g_shadowTexture.Sample(g_shadowSampler, lightingPosition.xy);
 	// If it is then alpha blend between final colour and shadow colour
+	output.colour = (input.colour - shadowSampleColor.b);
 }

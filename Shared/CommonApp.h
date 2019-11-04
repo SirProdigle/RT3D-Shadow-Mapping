@@ -56,6 +56,7 @@ struct Vertex_Pos3fColour4ub
 {
 	XMFLOAT3 pos;
 	VertexColour colour;
+	XMFLOAT3 originalPos;
 
 	Vertex_Pos3fColour4ub();
 	Vertex_Pos3fColour4ub(const XMFLOAT3 &pos, VertexColour colour);
