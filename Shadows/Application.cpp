@@ -284,7 +284,7 @@ void Application::RenderShadow()
 
 	XMFLOAT4 vTemp = m_pAeroplane->GetPosition();
 	XMVECTOR vPlanePos = XMLoadFloat4(&vTemp);
-
+	XMVECTOR lightPos = XMLoadFloat3(&m_shadowCastingLightPosition);
 	//*************************************************************************
 	// Your code to adjust the perspective projection of the light goes here
 	// You will need to calculate fovy, zn and zf instead of using these default values:
@@ -292,6 +292,34 @@ void Application::RenderShadow()
 	float zn = 1.0f;
 	float zf = 1000.0f;
 	float aspect = 1.2f;
+
+	XMVECTOR lightToPlane = vPlanePos - lightPos;
+	XMVECTOR direction = XMVector3Normalize(lightToPlane) * AEROPLANE_RADIUS;
+	XMVECTOR lightToNearV = (vPlanePos - direction) - lightPos;
+	XMVECTOR lightToFarV = (vPlanePos + direction) - lightPos;
+	aspect = RENDER_TARGET_WIDTH / RENDER_TARGET_HEIGHT;
+	XMStoreFloat(&zn, XMVector3Length(lightToNearV));
+	XMStoreFloat(&zf, XMVector3Length(lightToFarV));
+
+	XMVECTOR dist = XMVector3Length(lightToPlane);
+	float distance;
+	XMStoreFloat(&distance,dist);
+
+	fovy = atan2(AEROPLANE_RADIUS, distance) * 2;
+
+	/*
+	XMVECTOR lengthVector = XMVector3Length(vPlanePos - XMLoadFloat3(&m_shadowCastingLightPosition));
+	XMFLOAT3 adjacentStore;
+	XMStoreFloat3(&adjacentStore, lengthVector);
+	/float adjacent = adjacentStore.z;
+	float opposite = AEROPLANE_RADIUS * 2;
+	fovy = atan( opposite / adjacent);
+	zn = max(0.1f ,adjacentStore.z - AEROPLANE_RADIUS);
+	zf = adjacentStore.z + AEROPLANE_RADIUS;
+	adjacentStore.z + AEROPLANE_RADIUS * 2;
+	*/
+	//XMMatrixPerspectiveFovLH()
+
 	// You will find the following constants (defined above) useful:
 	// RENDER_TARGET_WIDTH, RENDER_TARGET_HEIGHT, AEROPLANE_RADIUS
 	//*************************************************************************

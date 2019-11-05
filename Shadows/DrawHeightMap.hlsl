@@ -106,11 +106,18 @@ void PSMain(const PSInput input, out PSOutput output)
 	// Transform the pixel into light space
 	float4 lightingPosition = mul(input.originalPos, g_shadowMatrix);
 	// Perform perspective correction
-	lightingPosition = lightingPosition / lightingPosition.z;
+	lightingPosition.xy = lightingPosition.xy / lightingPosition.w;
 	// Scale and offset uvs into 0-1 range.
 	lightingPosition = (lightingPosition + 1) / 2;
-	// Sample render target to see if this pixel is in shadow
-	float4 shadowSampleColor = g_shadowTexture.Sample(g_shadowSampler, lightingPosition.xy);
+	// Sample render target to see if this pixel is in shadow 
+	float4 shadowSampleColor = g_shadowTexture.Sample(g_shadowSampler, float2 (lightingPosition.x, 1 - lightingPosition.y));
 	// If it is then alpha blend between final colour and shadow colour
-	output.colour = (max(input.colour - shadowSampleColor.b,0));
+	if (lightingPosition.z >= 0)
+	{
+		output.colour = lerp(input.colour, g_shadowColour, shadowSampleColor.a);
+	}
+	else
+	{
+		output.colour = input.colour;
+	}
 }
